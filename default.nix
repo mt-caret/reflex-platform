@@ -23,38 +23,6 @@ let iosSupport = system == "x86_64-darwin";
       "13.2" = "11.3.1";
     }.${iosSdkVersion} or (throw "Unknown iosSdkVersion: ${iosSdkVersion}");
 
-    # Overlay for GHC with -load-splices & -save-splices option
-    splicesEval = self: super: {
-      haskell = super.haskell // {
-        compiler = super.haskell.compiler // {
-          ghcSplices-8_10 = super.haskell.compiler.ghc8104.overrideAttrs (drv: {
-            enableParallelBuilding = false;
-            src = nixpkgs.hackGet ./haskell-overlays/splices-load-save/dep/ghc;
-            # When building from the ghc git repo, ./boot must be run before configuring, whereas
-            # in the distribution tarball on the haskell.org downloads page, ./boot has already been
-            # run.
-            preConfigure= ''
-              echo ${drv.version} >VERSION
-              ./boot
-            '' + drv.preConfigure or "";
-            # Our fork of 8.6 with splices includes these patches.
-            # Specifically, is up to date with the `ghc-8.6` branch upstream,
-            # which contains various backports for any potential newer 8.6.x
-            # release. Nixpkgs manually applied some of those backports as
-            # patches onto 8.6.5 ahead of such a release, but now we get them
-            # from the src proper.
-            patches = [];
-          });
-        };
-        packages = super.haskell.packages // {
-          ghcSplices-8_10 = super.haskell.packages.ghc8104.override {
-            buildHaskellPackages = self.buildPackages.haskell.packages.ghcSplices-8_10;
-            ghc = self.buildPackages.haskell.compiler.ghcSplices-8_10;
-          };
-        };
-      };
-    };
-
     hackGetOverlay = self: super:
       import ./nixpkgs-overlays/hack-get { inherit lib; } self;
 
@@ -69,7 +37,6 @@ let iosSupport = system == "x86_64-darwin";
             useTextJSString enableExposeAllUnfoldings __useTemplateHaskell
             haskellOverlaysPre
             haskellOverlaysPost;
-          inherit ghcSavedSplices;
         };
       };
     };
@@ -97,7 +64,6 @@ let iosSupport = system == "x86_64-darwin";
         hackGetOverlay
         bindHaskellOverlays
         forceStaticLibs
-        splicesEval
         mobileGhcOverlay
         allCabalHashesOverlay
         (import ./nixpkgs-overlays/ghc.nix { inherit lib; })
@@ -185,23 +151,6 @@ let iosSupport = system == "x86_64-darwin";
       sha256 = null;
     });
 
-  ghcSavedSplices = ghcSavedSplices-8_10;
-  ghcSavedSplices-8_10 = (makeRecursivelyOverridable nixpkgs.haskell.packages.integer-simple.ghcSplices-8_10).override {
-    overrides = lib.foldr lib.composeExtensions (_: _: {}) (let
-      haskellOverlays = nixpkgs.haskell.overlays;
-    in [
-      haskellOverlays.combined
-      haskellOverlays.saveSplices
-      (self: super: with haskellLib; {
-        blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
-        cryptonite = disableCabalFlag super.cryptonite "integer-gmp";
-        integer-logarithms = disableCabalFlag super.integer-logarithms "integer-gmp";
-        scientific = enableCabalFlag super.scientific "integer-simple";
-        dependent-sum-template = dontCheck super.dependent-sum-template;
-        generic-deriving = dontCheck super.generic-deriving;
-      })
-    ]);
-  };
   ghcjs = ghcjs8_6;
   ghcjs8_6 = (makeRecursivelyOverridable (nixpkgsCross.ghcjs.haskell.packages.ghcjs86.override (old: {
     ghc = old.ghc.override {
@@ -251,24 +200,24 @@ let iosSupport = system == "x86_64-darwin";
   };
 
   ghcAndroidAarch64 = ghcAndroidAarch64-8_10;
-  ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghcSplices-8_10).override {
+  ghcAndroidAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch64.haskell.packages.integer-simple.ghc8104).override {
     overrides = nixpkgsCross.android.aarch64.haskell.overlays.combined;
   });
   ghcAndroidAarch32 = ghcAndroidAarch32-8_10;
-  ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghcSplices-8_10).override {
+  ghcAndroidAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.android.aarch32.haskell.packages.integer-simple.ghc8104).override {
     overrides = nixpkgsCross.android.aarch32.haskell.overlays.combined;
   });
 
   ghcIosSimulator64 = ghcIosSimulator64-8_10;
-  ghcIosSimulator64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghcSplices-8_10).override {
+  ghcIosSimulator64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.simulator64.haskell.packages.integer-simple.ghc8104).override {
     overrides = nixpkgsCross.ios.simulator64.haskell.overlays.combined;
   });
   ghcIosAarch64 = ghcIosAarch64-8_10;
-  ghcIosAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghcSplices-8_10).override {
+  ghcIosAarch64-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch64.haskell.packages.integer-simple.ghc8104).override {
     overrides = nixpkgsCross.ios.aarch64.haskell.overlays.combined;
   });
   ghcIosAarch32 = ghcIosAarch32-8_10;
-  ghcIosAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghcSplices-8_10).override {
+  ghcIosAarch32-8_10 = makeRecursivelyOverridableBHPToo ((makeRecursivelyOverridable nixpkgsCross.ios.aarch32.haskell.packages.integer-simple.ghc8104).override {
     overrides = nixpkgsCross.ios.aarch32.haskell.overlays.combined;
   });
 
@@ -320,7 +269,6 @@ in let this = rec {
           ghcAndroidAarch32-8_10
           ghcjs
           ghcjs8_6
-          ghcSavedSplices
           android
           androidWithHaskellPackages
           iosAarch32
