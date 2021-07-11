@@ -41,10 +41,12 @@ self: super: {
   # doctest doesn't work on ghcjs, but sometimes dontCheck doesn't seem to get rid of the dependency
   doctest = lib.warn "ignoring dependency on doctest" null;
 
-  network = haskellLib.overrideCabal super.network (drv: {
+  network = (haskellLib.overrideCabal super.network (drv: {
     revision = null;
     editedCabalFile = null;
-    patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ];
+    patches = (drv.patches or []) ++ [ ./ghcjs-network.patch ./ghcjs-network2.patch ];
+  })).overrideAttrs (oldAttrs: {
+    dontUpdateAutotoolsGnuConfigScripts = true;
   });
 
   # These packages require doctest

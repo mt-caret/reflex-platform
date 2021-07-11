@@ -101,6 +101,13 @@ in self: super: {
   skylighting = self.callHackage "skylighting" "0.10.0.2" {};
   skylighting-core = self.callHackage "skylighting-core" "0.10.0.2" {};
 
+  # my-pandoc dependencies
+  # text = self.callHackage "text" "1.2.3.1" {};
+  unicode-transforms = self.callHackage "unicode-transforms" "0.3.7.1" {
+    # some issue with template haskell
+    text = self.callHackage "text" "1.2.3.0" {};
+  };
+
   # beam packages
   beam-core = self.callHackage "beam-core" "0.9.0.0" {};
   beam-migrate = self.callHackage "beam-migrate" "0.5.0.0" {};

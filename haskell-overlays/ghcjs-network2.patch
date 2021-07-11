@@ -1,0 +1,13 @@
+diff --git a/config.sub b/config.sub
+index 40ea5df..25de056 100644
+--- a/config.sub
++++ b/config.sub
+@@ -1384,7 +1384,7 @@ case $os in
+ 	-unixware*)
+ 		os=-sysv4.2uw
+ 		;;
+-	-gnu/linux*)
++	-gnu/linux* | -ghcjs)
+ 		os=`echo $os | sed -e 's|gnu/linux|linux-gnu|'`
+ 		;;
+ 	# First accept the basic system types.

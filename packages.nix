@@ -14,6 +14,7 @@ with haskellPackages;
   # Add ghcjs-only packages here                                               #
   ##############################################################################
   reflex-todomvc
+  my-pandoc
 
 ] else []) ++ (if platform == "ghc" then [
   ##############################################################################

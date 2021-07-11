@@ -37,6 +37,9 @@ in
   reflex-todomvc = self.callPackage self._dep.reflex-todomvc {};
   reflex-aeson-orphans = self.callCabal2nix "reflex-aeson-orphans" self._dep.reflex-aeson-orphans {};
 
+  unicode-collation = dontHaddock (self.callCabal2nix "unicode-collation" self._dep.unicode-collation { tasty-bench = null; });
+  my-pandoc = self.callPackage self._dep.my-pandoc {};
+
   reflex-dom-core = let
     inherit (self) ghc;
     noGcTest = stdenv.hostPlatform.system != "x86_64-linux"
